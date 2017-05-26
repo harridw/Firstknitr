@@ -1,0 +1,71 @@
+---
+title: "First_Knitr"
+author: "EHarris"
+date: "5/25/2017"
+output: html_document
+---
+
+### Set Global Option
+```{r setoptions, echo = FALSE}
+opts_chunk$set(echo = FALSE, results = “as”, include = TRUE)
+```
+
+### Load anticipated packages to be used throughout Course 5 Project 1
+```{r setup, include=TRUE}
+ipak <- function(pkg){
+      new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+      if (length(new.pkg)) 
+            install.packages(new.pkg, dependencies = TRUE)
+      sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("plyr", "dplyr", "data.table", "dtplyr", "ggplot2", "knitr")
+ipak(packages)
+```
+
+### Read csv file into R
+```{r fileload, include = TRUE}
+activity <- read.csv("activity.csv", header = TRUE)
+```
+
+### An overview of the data file contents & layout
+```{r fileview, include = TRUE}
+dim(activity)
+
+summary(activity)
+
+table(activity$date, useNA = "always")       ## show missing values too
+```
+
+### Create table with sum of steps by day
+```{r totalsteps}
+stepaday <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
+```
+
+### Create table with the mean and median number of steps per day
+```{r avgsteps}
+avgstep <- aggregate(steps ~ date, data = activity, FUN = function(x) mean=mean(x))
+medianstep <- aggregate(steps ~ date, data = activity, FUN = function(x) median=median(x))
+
+
+
+### R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
