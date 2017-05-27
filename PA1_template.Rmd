@@ -5,12 +5,12 @@ date: "5/25/2017"
 output: html_document
 ---
 
-### Set Global Option
+## Set Global Option
 ```{r setoptions, echo = FALSE}
 opts_chunk$set(echo = FALSE, results = “as”, include = TRUE)
 ```
 
-### Load anticipated packages to be used throughout Course 5 Project 1
+## Load anticipated packages to be used throughout Course 5 Project 1
 ```{r setup, include=TRUE}
 ipak <- function(pkg){
       new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -24,24 +24,74 @@ packages <- c("plyr", "dplyr", "data.table", "dtplyr", "lubridate", "ggplot2", "
 ipak(packages)
 ```
 
-### 1. Code for reading in the dataset and/or processing the data
+## 1. Code for reading in the dataset and/or processing the data
+### Step 1: Read csv file into R
 ```{r fileload, include = TRUE}
 activity <- read.csv("activity.csv", header = TRUE)
-activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
-activity <- select(activity, date, interval, steps)
-dates <- data.frame(date=unique(activity$date))
-# activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
-# activity$date.ymd <- format(activity$date, format = "%d-%b-%y")
-# activity <- select(activity, date.ymd, date, interval, steps)
 ```
 
-### An overview of the data file contents & layout
+### Step 2a: Process data to address other parts of assignment
+```{r iniital_processing, include = TRUE}
+activity$date1 <- as.Date(activity$date, format = "%Y-%m-%d")
+activity$day <- weekdays(activity$date1)
+activity$date1 <- format(activity$date1, format = "%Y%m%d")
+activity$date2 <- format(activity$date1, format = "%Y%b%d")
+activity <- select(activity, date, date1, date2, day, interval, steps)
+weekday <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+weekend <- c("Saturday", "Sunday")
+activity.wday <- subset(activity, day %in% weekday)
+activity.wend <- subset(activity, day %in% weekend)
+```
+
+### Step 2b: Review content / layout of dataset
 ```{r fileview, include = TRUE}
 dim(activity)
 
 summary(activity)
 
-table(activity$date, useNA = "always")       ## show missing values too
+table(activity$date, useNA = "always")
+```
+
+dates <- data.frame(date=unique(activity$date1))
+daterange <- c(dates)
+min.date <- dates$date[1]
+max.date <- dates[length(dates),]
+
+
+### Total Number of steps take each day
+```{r total_steps_per_day, include = TRUE}
+steps.a.day <- aggregate(steps ~ date1, data = activity, FUN = function(x) sum=sum(x))
+```
+
+### Mean & Median steps per day [Days with no steps are excluded]
+```{r mean_median_steps_per_day, include = TRUE}
+meansteps <- mean(steps.a.day$steps, na.rm = TRUE)
+mediansteps <- median(steps.a.day$steps, na.rm = TRUE)
+steps.a.day1 <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
+steps.a.day1
+```
+
+### Average number of steps taken per 5 minute interval
+```
+This can be viewed two ways:  
+1. Mean number of steps in a 5-minute interval
+2. Mean number of steps for each 5-minute interval(same interval of each day)  
+```
+
+#### Mean number of steps in a 5-minute interval
+```{r mean_steps_per5, include = TRUE}
+steps.per.5min <- aggregate(steps ~ date1 + interval, data = activity,
+                                    FUN = function(x) meansteps=mean(x))
+steps.per.5min <- steps.per.5min[order(steps.per.5min[,1], steps.per.5min[,2]),]
+mean.5min <- mean(steps.per.5min$steps)
+mean.5min
+```
+
+### Mean number of steps each 5-minute interval
+```{r mean_steps_each5, include = TRUE}
+steps.each.5min <- aggregate(steps ~ interval, data = activity,
+                                    FUN = function(x) meansteps=mean(x))
+steps.each.5min
 ```
 
 ### 2. Histogram of the total number of steps taken each day.  Two steps:  
@@ -54,35 +104,16 @@ mrgtotal <- merge(dates[,1], stepaday[,1:2], by = 1, all = TRUE)
 
 ### Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
+with(steps.a.day, plot(date1, steps, main = "Total Steps Each Day", type = "n"))
 qplot(date, steps, data = mrgtotal, xlim = c(mrgtotal[1]), geom = "histogram",
             main = "Total Steps Each Day", xlab = "Dates", ylab = "# Steps")
 ```
 
-### 3. Mean and median number of steps per day
-```{r avgsteps}
-meansteps <- mean(mrgtotal$steps, na.rm = TRUE)
-mediansteps <- median(mrgtotal$steps, na.rm = TRUE)
-steps.a.day1 <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
-steps.a.day1
-```
+### Panel plot of average number of steps per 5-minute interval  
+#### Comparing weekdays and weekend
+```{r panel_plot, include = TRUE}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+with(airqualit, {
+      plot(Wind, Ozone, main = “Ozone and Wind”)
+	plot(Solar.R, Ozone, main = “Ozone and Solar Radiation”)
 
-
-### R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
