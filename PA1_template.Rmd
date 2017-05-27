@@ -109,11 +109,32 @@ qplot(date, steps, data = mrgtotal, xlim = c(mrgtotal[1]), geom = "histogram",
             main = "Total Steps Each Day", xlab = "Dates", ylab = "# Steps")
 ```
 
+### Time series (day of week) plot of the average number of steps taken
+```{r mean_steps_day_of_week, include = TRUE}
+mean.weekday <- aggregate(steps ~ day, data = activity, FUN = function(x) mean=mean(x))
+with(mean.weekday, plot(day, steps, pch = 20, type = "l", lty =1, lwd = 1,
+                        xlab = "Day of Week", ylab = "Average Number of Steps",
+                        main = "Average Steps per Day of Week"))
+```
+
+
 ### Panel plot of average number of steps per 5-minute interval  
 #### Comparing weekdays and weekend
 ```{r panel_plot, include = TRUE}
+mean.steps.interval <- aggregate(steps ~ interval, data = activity,
+                             FUN = function(x) mean=mean(x))
+mean.steps.wday <- aggregate(steps ~ interval, data = activity.wday,
+                             FUN = function(x) mean=mean(x))
+mean.steps.wend <- aggregate(steps ~ interval, data = activity.wend,
+                             FUN = function(x) mean=mean(x))
+min.yrange <- round(min(mean.steps.interval$steps),0)
+max.yrange <- round(max(mean.steps.interval$steps),0)
+yrange <- range(seq(from = min.yrange, to = max.yrange, by = 25))
 par(mfrow = c(1, 2), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
-with(airqualit, {
-      plot(Wind, Ozone, main = “Ozone and Wind”)
-	plot(Solar.R, Ozone, main = “Ozone and Solar Radiation”)
-
+plot(mean.steps.wday$interval, mean.steps.wday$steps, pch = 20, type = "l",
+                        xlim = range(0,2500), ylim = yrange, xlab = "", 
+                        ylab = "Average Number of Steps", main = "Weekday")
+plot(mean.steps.wend$interval, mean.steps.wend$steps, pch = 20, type = "l",
+                        xlim = range(0,2500), ylim = yrange, xlab = "",
+                        ylab = "", main = "Weekend")
+```
