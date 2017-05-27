@@ -20,13 +20,19 @@ ipak <- function(pkg){
 }
 
 # usage
-packages <- c("plyr", "dplyr", "data.table", "dtplyr", "ggplot2", "knitr")
+packages <- c("plyr", "dplyr", "data.table", "dtplyr", "lubridate", "ggplot2", "knitr")
 ipak(packages)
 ```
 
-### Read csv file into R
+### 1. Code for reading in the dataset and/or processing the data
 ```{r fileload, include = TRUE}
 activity <- read.csv("activity.csv", header = TRUE)
+activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
+activity <- select(activity, date, interval, steps)
+dates <- data.frame(date=unique(activity$date))
+# activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
+# activity$date.ymd <- format(activity$date, format = "%d-%b-%y")
+# activity <- select(activity, date.ymd, date, interval, steps)
 ```
 
 ### An overview of the data file contents & layout
@@ -38,16 +44,27 @@ summary(activity)
 table(activity$date, useNA = "always")       ## show missing values too
 ```
 
-### Create table with sum of steps by day
+### 2. Histogram of the total number of steps taken each day.  Two steps:  
+###    a) Summarize data to support requested histogram information  
+###    b) Plot data to histogram
 ```{r totalsteps}
 stepaday <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
+mrgtotal <- merge(dates[,1], stepaday[,1:2], by = 1, all = TRUE)
 ```
 
-### Create table with the mean and median number of steps per day
-```{r avgsteps}
-avgstep <- aggregate(steps ~ date, data = activity, FUN = function(x) mean=mean(x))
-medianstep <- aggregate(steps ~ date, data = activity, FUN = function(x) median=median(x))
+### Plot histogram reflecting total number of steps by day
+```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
+qplot(date, steps, data = mrgtotal, xlim = c(mrgtotal[1]), geom = "histogram",
+            main = "Total Steps Each Day", xlab = "Dates", ylab = "# Steps")
+```
 
+### 3. Mean and median number of steps per day
+```{r avgsteps}
+meansteps <- mean(mrgtotal$steps, na.rm = TRUE)
+mediansteps <- median(mrgtotal$steps, na.rm = TRUE)
+steps.a.day1 <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
+steps.a.day1
+```
 
 
 ### R Markdown
