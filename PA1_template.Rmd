@@ -99,34 +99,54 @@ missing value with applicable imputed value.
 ### Step 1: Calculate the mean steps for each day of week + interval combination  
 ```{r mean_steps_day_interval, include = TRUE}
 mean.day.interval <- aggregate(steps ~ day + interval, data = activity,
-                                    FUN = function(x) meansteps=mean(x))
+                                    FUN = function(x) mean=round(mean(x), digits = 0))
 mean.day.interval$day_int <- paste(mean.day.interval$day, mean.day.interval$interval,
                                     sep = "_")
 mean.day.interval <- select(day, interval, day_int, steps)
 ```
 
-
-
-
-
-### Average number of steps taken per 5 minute interval
+### Step 2: Identify missing values then replace with the imputed value.  
 ```
-This can be viewed two ways:  
-1. Mean number of steps in a 5-minute interval
-2. Mean number of steps for each 5-minute interval(same interval of each day)  
+This, too, is completed in multiple steps.  The first step is to subset  
+the missing values from observations with values.  A second step is to replace  
+missing values with imputed values.  The final step is to combine the data  
+sets with imputed values to those observations with actula values.  
 ```
 
-#### Mean number of steps in a 5-minute interval
-```{r mean_steps_per5, include = TRUE}
-steps.per.5min <- aggregate(steps ~ date1 + interval, data = activity,
-                                    FUN = function(x) meansteps=mean(x))
-steps.per.5min <- steps.per.5min[order(steps.per.5min[,1], steps.per.5min[,2]),]
-mean.5min <- mean(steps.per.5min$steps)
-mean.5min
+#### Step 2a: Create data subsets, missing values and non-missing values
+```{r subset_missing, include = TRUE}
+activity.isna <- subset(activity, is.na(steps))
+activity.isna <- select(activity.isna, daytype, day, date, date1, date2,
+                              interval, day_int)
+activity.clean <- subset(activity, !is.na(steps))
+```
+
+#### Step 2b: Replace missign values with imputed values (merge function)
+```{r subset_replace_missing, include = TRUE}
+activity.impute <- merge(activity.isna, mean.day.interval, by = day_int, all = FALSE)
+```
+
+#### Step 2c: Combine, rbind(), imputed observations with actual observations
+```{r combine_impute_actual, include = TRUE}
+activity.total <- rbind(activity.clean, activity.impute)
+activity.total <- activity.total[order(activity.total[,3], activity.total[,6]),]
+```
+
+## Item 7: Histogram of total steps each day after missing values are imputed
+```
+This is done in two steps.  The first step is simply calculating the total  
+number of steps for each day.  The second, and final, step is creating a  
+histogram of the number of steps for each day.  
+```
+
+### Step 1: Calculate total number of steps for each day, including imputed
+```{r total_steps_with_imputed, include = TRUE}
+impute.total.steps <- aggregate(steps ~ day1, data = activity.total,
+                             FUN = function(x) sum = sum(x))
 ```
 
 
-
+### Step 2: Plot histogram of total steps each day including imputed values
 
 
 
