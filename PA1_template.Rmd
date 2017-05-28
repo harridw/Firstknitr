@@ -35,11 +35,15 @@ activity <- read.csv("activity.csv", header = TRUE)
 activity$date1 <- as.Date(activity$date, format = "%Y-%m-%d")
 activity$day <- weekdays(activity$date1)
 activity$daytype <- ifelse(activity$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
-activity$date1 <- format(activity$date1, format = "%Y%m%d")
-activity$date2 <- format(activity$date1, format = "%Y%b%d")
+activity$date2 <- format(activity$date1, format = "%Y%m%d")
+activity$date3 <- format(activity$date1, format = "%Y%b%d")
 activity$day_int <- paste(activity$day, activity$interval, sep = "_")
-activity <- select(activity, daytype, day, date, date1, date2, interval,
+activity <- select(activity, daytype, day, date, date1, date2, date3, interval,
                               day_int, steps)
+dates <- as.data.frame(unique(activity$date1))
+colnames(dates)[1] <- "date"
+mindate <- min(dates$date)
+maxdate <- max(dates$date)
 ```
 
 ## Item 2: Histogram of the total number of steps taken each day
@@ -51,15 +55,16 @@ max.date <- dates[length(dates),]
 
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
-###    Step 1: Summarize data to support requested histogram information  
+###    Step 1: Calculate total steps each day  
 ```{r total_steps_per_day, include = TRUE}
-steps.a.day <- aggregate(steps ~ date1, data = activity, FUN = function(x) sum=sum(x))
-mrgtotal <- merge(dates[,1], stepaday[,1:2], by = 1, all = TRUE)
+steps.a.day1 <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
 ```
 
 ###    Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-with(steps.a.day, plot(date1, steps, main = "Total Steps Each Day", type = "n"))
+qplot(steps.a.day1$steps, geom = "histogram", binwidth = 0.1, xlab = "Date",
+                  xlim = as.Date(c(mindate,maxdate)))
+with(steps.a.day1, plot(date1, steps, main = "Total Steps Each Day", type = "n"))
 qplot(date, steps, data = mrgtotal, xlim = c(mrgtotal[1]), geom = "histogram",
             main = "Total Steps Each Day", xlab = "Dates", ylab = "# Steps")
 ```
