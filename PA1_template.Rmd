@@ -35,17 +35,10 @@ activity <- read.csv("activity.csv", header = TRUE)
 activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
 activity$day <- weekdays(activity$date)
 activity$daytype <- ifelse(activity$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
-activity$date1 <- format(activity$date1, format = "%Y%m%d")
-activity$date2 <- format(activity$date1, format = "%Y%b%d")
 activity$day_int <- paste(activity$day, activity$interval, sep = "_")
-activity <- select(activity, daytype, day, date, date1, date2, interval,
-                              day_int, steps)
-activity <- activity[order(activity$date, activity$interval),]
+activity <- select(activity, daytype, day, date, interval, day_int, steps)
 dates <- as.data.frame(unique(activity$date))
 colnames(dates)[1] <- "date"
-minDate <- as.Date(min(dates$date))
-maxDate <- as.Date(max(dates$date))
-daterange <- c(seq(from = minDate, to = maxDate, by = 3))
 ```
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
@@ -53,35 +46,38 @@ daterange <- c(seq(from = minDate, to = maxDate, by = 3))
 ```{r total_steps_per_day, include = TRUE}
 steps.a.day <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
 steps.a.day$steps1000 <- round(steps.a.day$steps/1000, digits = 2)
+steps.a.day1 <- select(steps.a.day, date, steps1000)
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-hist(steps.a.day$steps1000, breaks = round(length(dates$date)/3, digits = 0),
+hist(steps.a.day$steps1000, breaks = c(seq(as.Date(minDate-1), 
+                                           as.Date(maxDate+1), by = "3 day")),
             xlab = "Dates", ylab = "Total Steps (000s)",
             main = "Total Steps Each Day", ylim = c(0, 25),
-            xlim = range(daterange), ylim = c(0, 25),
-            axes = TRUE, plot = TRUE, freq = FALSE, right = TRUE,
-            strptime(steps.a.day$date, format = "%Y-%m-%d", tz = ""))
-qplot(steps.a.day$steps1000, geom = "histogram", binwidth = 0.2, xlab = "Date",
-                  ylab = "Total Steps (000s)", xlim = as.Date(daterange), ylim = c(0,25))
+            xlim = c(as.Date("2012-09-30"),as.Date("2012-12-01")),
+            axes = TRUE, plot = TRUE, freq = TRUE, right = TRUE)
+qplot(steps1000, data = steps.a.day1, geom = "histogram", binwidth = 0.3,
+            xlab = "Measurement Dates", ylab = "Total Steps(000s)",
+            main = "Total Steps Each Day",
+            xlim = c(as.Date(min(dates$date)-1), as.Date(max(dates$date)+1)),
+            ylim = c(0, 25))
+qplot(steps1000, data = steps.a.day, geom = "histogram", binwidth = 0.5, xlab = "Date",
+                  ylab = "Total Steps (000s)", xlim = c(minDate,maxDate), ylim = c(0,25))
 ggplot(data = steps.a.day, aes(steps.a.day1$date)) +
             geom_histogram(breaks = seq(mindate, maxdate, by = 6) +
             labs(title = "Total Steps Each Day") +
             labs(x = "Date", y = "Total Steps(000s)") +
             xlim(as.Date(c(mindate, maxdate))) +
             ylim(c(0, 25)))
-
-
-with(steps.a.day1, plot(date1, steps, main = "Total Steps Each Day", type = "n"))
 ```
 
 ## Item 3: Mean & Median steps per day [Days with no steps are excluded]
 ```{r mean_median_steps_per_day, include = TRUE}
 meansteps <- mean(steps.a.day$steps, na.rm = TRUE)
 mediansteps <- median(steps.a.day$steps, na.rm = TRUE)
-steps.a.day1 <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
-steps.a.day1
+mean.median.steps <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
+mean.median.steps
 ```
 
 ## Item 4: Time series (day of week) plot of the average number of steps taken
