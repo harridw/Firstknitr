@@ -20,7 +20,8 @@ ipak <- function(pkg){
 }
 
 ### Package Usage
-packages <- c("plyr", "dplyr", "data.table", "dtplyr", "lubridate", "ggplot2", "knitr")
+packages <- c("plyr", "dplyr", "data.table", "dtplyr", "lubridate", "ggplot2",
+                  "scales", "reshape2", "knitr")
 ipak(packages)
 ```
 
@@ -35,8 +36,7 @@ activity <- read.csv("activity.csv", header = TRUE)
 activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
 activity$day <- weekdays(activity$date)
 activity$daytype <- ifelse(activity$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
-activity$day_int <- paste(activity$day, activity$interval, sep = "_")
-activity <- select(activity, daytype, day, date, interval, day_int, steps)
+activity <- select(activity, daytype, day, date, interval, steps)
 dates <- as.data.frame(unique(activity$date))
 colnames(dates)[1] <- "date"
 ```
@@ -65,11 +65,11 @@ qplot(steps1000, data = steps.a.day1, geom = "histogram", binwidth = 0.3,
 qplot(steps1000, data = steps.a.day, geom = "histogram", binwidth = 0.5, xlab = "Date",
                   ylab = "Total Steps (000s)", xlim = c(minDate,maxDate), ylim = c(0,25))
 ggplot(data = steps.a.day, aes(steps.a.day1$date)) +
-            geom_histogram(breaks = seq(mindate, maxdate, by = 6) +
+            geom_histogram(binwidth = 0.3) +
             labs(title = "Total Steps Each Day") +
             labs(x = "Date", y = "Total Steps(000s)") +
             xlim(as.Date(c(mindate, maxdate))) +
-            ylim(c(0, 25)))
+            ylim(c(0, 25))
 ```
 
 ## Item 3: Mean & Median steps per day [Days with no steps are excluded]
@@ -84,13 +84,25 @@ mean.median.steps
 ```{r mean_steps_day_of_week, include = TRUE}
 mean.steps.day <- aggregate(steps ~ day, data = activity, 
                                     FUN = function(x) mean=mean(x))
-qplot(day, steps, data = mean.steps.day, pch = 20, geom = c("point", "smooth"),
-      xlim = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday","Saturday", "Sunday"),
+mean.steps.day$day <- factor(mean.steps.day$day,
+                        levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                                   "Friday","Saturday", "Sunday"))
+qplot(x = day, y = steps, data = mean.steps.day, group = 7,  
+      geom = c("point", "line"),
       xlab = "Day of Week", ylab = "Average Number of Steps",
-      main = "Average Steps per Day of Week")
+      main = "Day of Week (Average Steps)")
 ```
 
-## Item 5: 5-munite interval with maximum average number of steps
+## Item 5: 5-munite interval with maximum average number of steps  
+```
+Identifying the 5-minute interval with the highest average number of steps is  
+performed in 3 steps.  Step 1 calculates the average number of steps for each  
+5-minute interval.  Theser results are then sorted in decreasing order based  
+on average number of steps, Step 2.  The final step, Step 3, is selecting the  
+first row, which represents the highest average steps -- interval 835 with  
+average steps = 206.1698.
+```
+### R Code performing each of these steps
 ```{r mean_steps_each5, include = TRUE}
 steps.each.5min <- aggregate(steps ~ interval, data = activity,
                                     FUN = function(x) meansteps=mean(x))
@@ -105,12 +117,11 @@ to be considered: 1) day of week and 2) interval.  We will replace each
 missing value with applicable imputed value.  
 ```
 ### Step 1: Calculate the mean steps for each day of week + interval combination  
+#### NOTE:  Results are rounded, no decimals, as partial steps are not counted.
 ```{r mean_steps_day_interval, include = TRUE}
 mean.day.interval <- aggregate(steps ~ day + interval, data = activity,
                                     FUN = function(x) mean=round(mean(x), digits = 0))
-mean.day.interval$day_int <- paste(mean.day.interval$day, mean.day.interval$interval,
-                                    sep = "_")
-mean.day.interval <- select(day, interval, day_int, steps)
+mean.day.interval <- select(mean.day.interval, day, interval, steps)
 ```
 
 ### Step 2: Identify missing values then replace with the imputed value.  
@@ -122,22 +133,22 @@ sets with imputed values to those observations with actula values.
 ```
 
 #### Step 2a: Create data subsets, missing values and non-missing values
+##### Missing values in data set activity.isna will be replaced by imputed values
 ```{r subset_missing, include = TRUE}
 activity.isna <- subset(activity, is.na(steps))
-activity.isna <- select(activity.isna, daytype, day, date, date1, date2,
-                              interval, day_int)
+activity.isna <- select(activity.isna, daytype, day, date, interval)
 activity.clean <- subset(activity, !is.na(steps))
 ```
 
 #### Step 2b: Replace missign values with imputed values (merge function)
 ```{r subset_replace_missing, include = TRUE}
-activity.impute <- merge(activity.isna, mean.day.interval, by = day_int, all = FALSE)
+activity.impute <- merge(activity.isna, mean.day.interval, by = c("day", "interval"))
 ```
 
 #### Step 2c: Combine, rbind(), imputed observations with actual observations
 ```{r combine_impute_actual, include = TRUE}
 activity.total <- rbind(activity.clean, activity.impute)
-activity.total <- activity.total[order(activity.total[,3], activity.total[,6]),]
+activity.total <- activity.total[order(activity.total[,3], activity.total[,4]),]
 ```
 
 ## Item 7: Histogram of total steps each day after missing values are imputed
@@ -151,7 +162,8 @@ histogram of the number of steps for each day.
 ```{r total_steps_with_imputed, include = TRUE}
 impute.total.steps <- aggregate(steps ~ date, data = activity.total,
                              FUN = function(x) sum = sum(x))
-impute.total.steps$steps1000 <- round(steps.a.day1$steps/1000, digits = 2)
+impute.total.steps$steps1000 <- round(impute.total.steps$steps/1000, digits = 2)
+impute.total.steps1000 <- select(impute.total.steps, date, steps1000)
 ```
 
 ### Item 8: Panel plot of average number of steps per 5-minute interval  
