@@ -43,29 +43,33 @@ activity <- select(activity, daytype, day, date, date1, date2, interval,
 activity <- activity[order(activity$date, activity$interval),]
 dates <- as.data.frame(unique(activity$date))
 colnames(dates)[1] <- "date"
-mindate <- min(dates$date)
-maxdate <- max(dates$date)
-daterange <- c(seq(from = mindate, to = maxdate, by = 6))
+minDate <- as.Date(min(dates$date))
+maxDate <- as.Date(max(dates$date))
+daterange <- c(seq(from = minDate, to = maxDate, by = 3))
 ```
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
 ### Step 1: Calculate total steps each day  
 ```{r total_steps_per_day, include = TRUE}
-steps.a.day <- aggregate(steps ~ date1, data = activity, FUN = function(x) sum=sum(x))
+steps.a.day <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
 steps.a.day$steps1000 <- round(steps.a.day$steps/1000, digits = 2)
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-hist(steps.a.day1$steps1000, main = "Total Step Each Day", xlab = "Date",
-            ylab = "Total Steps (000s)", ylim = range(c(0,25)))
-qplot(steps.a.day1$steps1000, geom = "histogram", binwidth = 0.1, xlab = "Date",
+hist(steps.a.day$steps1000, breaks = round(length(dates$date)/3, digits = 0),
+            xlab = "Dates", ylab = "Total Steps (000s)",
+            main = "Total Steps Each Day", ylim = c(0, 25),
+            xlim = range(daterange), ylim = c(0, 25),
+            axes = TRUE, plot = TRUE, freq = FALSE, right = TRUE,
+            strptime(steps.a.day$date, format = "%Y-%m-%d", tz = ""))
+qplot(steps.a.day$steps1000, geom = "histogram", binwidth = 0.2, xlab = "Date",
                   ylab = "Total Steps (000s)", xlim = as.Date(daterange), ylim = c(0,25))
-ggplot(data = steps.a.day1, aes(steps.a.day1$date)) +
+ggplot(data = steps.a.day, aes(steps.a.day1$date)) +
             geom_histogram(breaks = seq(mindate, maxdate, by = 6) +
             labs(title = "Total Steps Each Day") +
             labs(x = "Date", y = "Total Steps(000s)") +
-            xlim(c(mindate, maxdate)) +
+            xlim(as.Date(c(mindate, maxdate))) +
             ylim(c(0, 25)))
 
 
