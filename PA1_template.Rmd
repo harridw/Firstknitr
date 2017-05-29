@@ -32,41 +32,44 @@ activity <- read.csv("activity.csv", header = TRUE)
 
 ###   Step 2: Process data to address other parts of assignment
 ```{r iniital_processing, include = TRUE}
-activity$date1 <- as.Date(activity$date, format = "%Y-%m-%d")
-activity$day <- weekdays(activity$date1)
+activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
+activity$day <- weekdays(activity$date)
 activity$daytype <- ifelse(activity$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
-activity$date2 <- format(activity$date1, format = "%Y%m%d")
-activity$date3 <- format(activity$date1, format = "%Y%b%d")
+activity$date1 <- format(activity$date1, format = "%Y%m%d")
+activity$date2 <- format(activity$date1, format = "%Y%b%d")
 activity$day_int <- paste(activity$day, activity$interval, sep = "_")
-activity <- select(activity, daytype, day, date, date1, date2, date3, interval,
+activity <- select(activity, daytype, day, date, date1, date2, interval,
                               day_int, steps)
-dates <- as.data.frame(unique(activity$date1))
+activity <- activity[order(activity$date, activity$interval),]
+dates <- as.data.frame(unique(activity$date))
 colnames(dates)[1] <- "date"
 mindate <- min(dates$date)
 maxdate <- max(dates$date)
+daterange <- c(seq(from = mindate, to = maxdate, by = 6))
 ```
-
-## Item 2: Histogram of the total number of steps taken each day
-
-dates <- data.frame(date=unique(activity$date1))
-daterange <- c(dates)
-min.date <- dates$date[1]
-max.date <- dates[length(dates),]
-
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
-###    Step 1: Calculate total steps each day  
+### Step 1: Calculate total steps each day  
 ```{r total_steps_per_day, include = TRUE}
-steps.a.day1 <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
+steps.a.day <- aggregate(steps ~ date1, data = activity, FUN = function(x) sum=sum(x))
+steps.a.day$steps1000 <- round(steps.a.day$steps/1000, digits = 2)
 ```
 
-###    Step 2: Plot histogram reflecting total number of steps by day
+### Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-qplot(steps.a.day1$steps, geom = "histogram", binwidth = 0.1, xlab = "Date",
-                  xlim = as.Date(c(mindate,maxdate)))
+hist(steps.a.day1$steps1000, main = "Total Step Each Day", xlab = "Date",
+            ylab = "Total Steps (000s)", ylim = range(c(0,25)))
+qplot(steps.a.day1$steps1000, geom = "histogram", binwidth = 0.1, xlab = "Date",
+                  ylab = "Total Steps (000s)", xlim = as.Date(daterange), ylim = c(0,25))
+ggplot(data = steps.a.day1, aes(steps.a.day1$date)) +
+            geom_histogram(breaks = seq(mindate, maxdate, by = 6) +
+            labs(title = "Total Steps Each Day") +
+            labs(x = "Date", y = "Total Steps(000s)") +
+            xlim(c(mindate, maxdate)) +
+            ylim(c(0, 25)))
+
+
 with(steps.a.day1, plot(date1, steps, main = "Total Steps Each Day", type = "n"))
-qplot(date, steps, data = mrgtotal, xlim = c(mrgtotal[1]), geom = "histogram",
-            main = "Total Steps Each Day", xlab = "Dates", ylab = "# Steps")
 ```
 
 ## Item 3: Mean & Median steps per day [Days with no steps are excluded]
@@ -146,15 +149,10 @@ histogram of the number of steps for each day.
 
 ### Step 1: Calculate total number of steps for each day, including imputed
 ```{r total_steps_with_imputed, include = TRUE}
-impute.total.steps <- aggregate(steps ~ day1, data = activity.total,
+impute.total.steps <- aggregate(steps ~ date, data = activity.total,
                              FUN = function(x) sum = sum(x))
+impute.total.steps$steps1000 <- round(steps.a.day1$steps/1000, digits = 2)
 ```
-
-
-### Step 2: Plot histogram of total steps each day including imputed values
-
-
-
 
 ### Item 8: Panel plot of average number of steps per 5-minute interval  
 #### A comparison of weekdays and weekend
