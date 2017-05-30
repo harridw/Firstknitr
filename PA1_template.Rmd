@@ -44,25 +44,47 @@ colnames(dates)[1] <- "date"
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
 ### Step 1: Calculate total steps each day  
 ```{r total_steps_per_day, include = TRUE}
-steps.a.day <- aggregate(steps ~ date, data = activity, FUN = function(x) sum=sum(x))
+steps.a.day <- aggregate(steps ~ date, data = activity, 
+                         FUN = function(x) sum=sum(x), na.rm = TRUE)
 steps.a.day$steps1000 <- round(steps.a.day$steps/1000, digits = 2)
 steps.a.day1 <- select(steps.a.day, date, steps1000)
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-qplot(steps1000, data = steps.a.day1, geom = "histogram", binwidth = 0.3,
+barplot(steps.a.day1$steps1000, 
+        main = "Total Steps Each Day",
+        xlab = "Measurement Date",
+        ylab = "Total Steps(000s)",
+        xlim = c(as.Date("2012-10-01", "%Y-%m-%d"), as.Date("2012-11-30", "%Y-%m-%d")))
+        
+        
+        height, width = 1, space = NULL,
+        names.arg = NULL, legend.text = NULL, beside = FALSE,
+        horiz = FALSE, density = NULL, angle = 45,
+        col = NULL, border = par("fg"),
+        main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
+        xlim = NULL, ylim = NULL, xpd = TRUE, log = "",
+        axes = TRUE, axisnames = TRUE,
+        cex.axis = par("cex.axis"), cex.names = par("cex.axis"),
+        inside = TRUE, plot = TRUE, axis.lty = 0, offset = 0,
+        add = FALSE, args.legend = NULL, ...)
+
+qplot(steps1000, data = steps.a.day1, geom = "histogram", binwidth = 0.5,
             xlab = "Measurement Dates", ylab = "Total Steps(000s)",
             main = "Total Steps Each Day",
             xlim = c(as.Date(min(dates$date)-1), as.Date(max(dates$date)+1)),
             ylim = c(0, 25))
-ggplot(data = steps.a.day1, aes(steps1000)) + 
-            geom_histogram(aes(y = "Frequency"), binwidth = 0.3) +
+ggplot(steps.a.day1, aes(x=date, y = steps1000)) +
+            geom_histogram(binwidth = .3) +
+            as.Date(15103, origin = "1970-01-01") +
+            geom_rect(aes(xmin = as.Date("2012-10-01", "%Y-%m-%d"),
+                          xmax = as.Date("2012-11-30", "%Y-%m-%d"),
+                          ymin =0, ymax = 25)) +
+            scale_x_date(labels = date_format("Y-%m-d")) +
             labs(title = "Total Steps Each Day") +
             labs(x = "Date", y = "Total Steps(000s)") +
-            axis(side = 1, at = c(seq(min(dates$date),max(dates$date)), by = 3)) +
-            axis(side = 2, at = c(seq(0, 25), by = 5)) +
-            axis.Date(1, as.Date(15103, origin = "1970-01-01")) +
+ #          axis.Date(1, as.Date(15103, origin = "1970-01-01")) +
             geom_rect(aes(xmin = as.Date("2012-10-01", "%Y-%m-%d"),
                           xmax = as.Date("2012-11-30", "%Y-%m-%d"),
                           ymin =0, ymax = 25))
