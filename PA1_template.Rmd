@@ -48,7 +48,7 @@ colnames(steps.a.day) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps per day
-```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
+```{r steps_per_day_hist, fig.keep = "all", fig.show = "asis" }
 theme_update(plot.title = element_text(hjust = 0.5))
 ggplot(steps.a.day, aes(x = steps)) +
       geom_histogram(binwidth = 1000, fill = "blue") +
@@ -152,7 +152,7 @@ colnames(impute.total.steps) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps per day
-```{r steps_per_day_hist, fig.keep = "all"", fig.show = "asis" }
+```{r steps_per_day_hist, fig.keep = "all", fig.show = "asis" }
 theme_update(plot.title = element_text(hjust = 0.5))
 ggplot(impute.total.steps, aes(x = steps)) +
       geom_histogram(binwidth = 1000, fill = "blue") +
