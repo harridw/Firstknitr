@@ -136,9 +136,8 @@ sets with imputed values to those observations with actula values.
 ```{r subset_missing, include = TRUE}
 activity.isna <- subset(activity, is.na(steps))
 activity.isna <- select(activity.isna, daytype, day, date, interval)
-activity.clean <- subset(activity, !is.na(steps))
-activity.clean <- activity.clean[order(activity.clean[,3],
-                                         activity.clean[,4])]
+activity.isna <- activity.isna[order(activity.isna[,3],
+                                         activity.isna[,4]),]
 
 head(activity.isna)
 ```
@@ -146,8 +145,8 @@ head(activity.isna)
 #### Step 2b: Replace missign values with imputed values (merge function)
 ```{r subset_replace_missing, include = TRUE}
 activity.impute <- merge(activity.isna, mean.day.interval, by = c("day","interval"))
-activity.impute <- activity.impute[order(activity.impute[,3],
-                                         activity.impute[,4])]
+activity.impute <- activity.impute[order(activity.impute$date,
+                                         activity.impute$interval),]
 
 head(activity.impute)
 ```
