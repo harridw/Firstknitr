@@ -84,12 +84,9 @@ qplot(x = day, y = steps, data = mean.steps.day, group = 7,
 ```{r mean_steps_5min_interval, include = TRUE}
 mean.steps.interval <- aggregate(steps ~ interval, data = activity.clean, 
                                     FUN = function(x) mean=mean(x))
-mean.steps.interval$day <- factor(mean.steps.interval$day,
-                        levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
-                                   "Friday","Saturday", "Sunday"))
 
 theme_update(plot.title = element_text(hjust = 0.5))
-qplot(x = interval, y = steps, data = mean.steps.day, group = 7,  
+qplot(x = interval, y = steps, data = mean.steps.interval, group = 288,  
       geom = c("point", "line"),
       xlab = "5-Minute Interval", ylab = "Average Number of Steps",
       main = "Average Steps for each Day of Week")
