@@ -243,12 +243,30 @@ sets with imputed values to those observations with actula values.  </code></pre
 <h5>Missing values in data set activity.isna will be replaced by imputed values</h5>
 <pre class="r"><code>activity.isna &lt;- subset(activity, is.na(steps))
 activity.isna &lt;- select(activity.isna, daytype, day, date, interval)
-activity.clean &lt;- subset(activity, !is.na(steps))</code></pre>
+activity.clean &lt;- subset(activity, !is.na(steps))
+
+head(activity.isna)</code></pre>
+<pre><code>##   daytype    day       date interval
+## 1 Weekday Monday 2012-10-01        0
+## 2 Weekday Monday 2012-10-01        5
+## 3 Weekday Monday 2012-10-01       10
+## 4 Weekday Monday 2012-10-01       15
+## 5 Weekday Monday 2012-10-01       20
+## 6 Weekday Monday 2012-10-01       25</code></pre>
 </div>
 </div>
 <div id="step-2b-replace-missign-values-with-imputed-values-merge-function" class="section level4">
 <h4>Step 2b: Replace missign values with imputed values (merge function)</h4>
-<pre class="r"><code>activity.impute &lt;- merge(activity.isna, mean.day.interval, by = c(&quot;day&quot;,&quot;interval&quot;))</code></pre>
+<pre class="r"><code>activity.impute &lt;- merge(activity.isna, mean.day.interval, by = c(&quot;day&quot;,&quot;interval&quot;))
+
+head(activity.impute)</code></pre>
+<pre><code>##      day interval daytype       date steps
+## 1 Friday        0 Weekday 2012-11-09     0
+## 2 Friday        0 Weekday 2012-11-30     0
+## 3 Friday       10 Weekday 2012-11-30     0
+## 4 Friday       10 Weekday 2012-11-09     0
+## 5 Friday      100 Weekday 2012-11-30     0
+## 6 Friday      100 Weekday 2012-11-09     0</code></pre>
 </div>
 <div id="step-2c-combine-rbind-imputed-observations-with-actual-observations" class="section level4">
 <h4>Step 2c: Combine, rbind(), imputed observations with actual observations</h4>
