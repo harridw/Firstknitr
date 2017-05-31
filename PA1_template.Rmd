@@ -52,34 +52,13 @@ steps.a.day <- aggregate(activity.clean$steps,
 colnames(steps.a.day) <- c("date", "steps")
 ```
 
-### Step 2: Plot histogram reflecting total number of steps by day
+### Step 2: Plot histogram reflecting total number of steps per day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-yAxis = seq(from = 0, to = 24000, by = 3000)
-xAxis = seq(from = min(dates$date), max(dates$date), by = 6)
-with(steps.a.day, {
-      hist(steps [date >= as.Date("2012-10-01", "Y-%m-%d")
-                  & date <= as.Date("2012-11-30", "%Y-%m-%d")],
-            breaks = xAxis,
-            main = "Total Steps Each Day",
-            xlab = "Measurement Date",
-            ylab = "Total Steps",
-            xaxt = "n", yaxt = "n")
-      
-      axis(2, at = yAxis, labels = yAxis)
-      axis(1, at = xAxis, labels = xAxis)
-})
-
-
-ggplot(steps.a.day, aes(x = date, y = steps)) +
-      geom_histogram(stat_bin2d(binwidth = 0.3, drop = TRUE), 
-                                    fill = "blue", na.rm = TRUE) +
-      labs(title = "Total Steps Each Day") +
-      labs(x = "Date", y = "Total Steps(000s)") +
-      scale_x_date(dates$date, date_breaks = c(daterange), 
-                        date_labels = c(daterange)) +
-      scale_y_continuous(breaks = seq(0, 22000, 3000)) +
-            
- #    axis.Date(1, as.Date(15103, origin = "1970-01-01")) +
+theme_update(plot.title = element_text(hjust = 0.5))
+ggplot(steps.a.day, aes(x = steps)) +
+      geom_histogram(binwidth = 1000, fill = "blue") +
+      labs(title = "Total Steps per Day") +
+      labs(x = "Steps a Day", y = "Frequency (# Days)")
 ```
 
 ## Item 3: Mean & Median steps per day [Days with no steps are excluded]
@@ -97,10 +76,12 @@ mean.steps.day <- aggregate(steps ~ day, data = activity,
 mean.steps.day$day <- factor(mean.steps.day$day,
                         levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
                                    "Friday","Saturday", "Sunday"))
+
+theme_update(plot.title = element_text(hjust = 0.5))
 qplot(x = day, y = steps, data = mean.steps.day, group = 7,  
       geom = c("point", "line"),
       xlab = "Day of Week", ylab = "Average Number of Steps",
-      main = "Day of Week (Average Steps)")
+      main = "Average Steps for each Day of Week")
 ```
 
 ## Item 5: 5-munite interval with maximum average number of steps  
@@ -127,7 +108,7 @@ to be considered: 1) day of week and 2) interval.  We will replace each
 missing value with applicable imputed value.  
 ```
 ### Step 1: Calculate the mean steps for each day of week + interval combination  
-#### NOTE:  Results are rounded, no decimals, as partial steps are not counted.
+#### NOTE:  Results are rounded, create integer, as partial steps are not counted.
 ```{r mean_steps_day_interval, include = TRUE}
 mean.day.interval <- aggregate(steps ~ day + interval, data = activity,
                               FUN = function(x) mean=round(mean(x), digits = 0))
@@ -170,10 +151,18 @@ histogram of the number of steps for each day.
 
 ### Step 1: Calculate total number of steps for each day, including imputed
 ```{r total_steps_with_imputed, include = TRUE}
-impute.total.steps <- aggregate(steps ~ date, data = activity.total,
-                             FUN = function(x) sum = sum(x))
-impute.total.steps$steps1000 <- round(impute.total.steps$steps/1000, digits = 2)
-impute.total.steps1000 <- select(impute.total.steps, date, steps1000)
+impute.total.steps <- aggregate(activity.total$steps, 
+                        list(date = as.Date(activity.total$date)), sum)
+colnames(impute.total.steps) <- c("date", "steps")
+```
+
+### Step 2: Plot histogram reflecting total number of steps per day
+```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
+theme_update(plot.title = element_text(hjust = 0.5))
+ggplot(impute.total.steps, aes(x = steps)) +
+      geom_histogram(binwidth = 1000, fill = "blue") +
+      labs(title = "Total Steps per Day") +
+      labs(x = "Steps a Day", y = "Frequency (# Days)")
 ```
 
 ### Item 8: Panel plot of average number of steps per 5-minute interval  
@@ -186,11 +175,11 @@ mean.wend <- subset(mean.steps.daytype, daytype == "Weekend")
 min.yrange <- round(min(mean.steps.daytype$steps),0)
 max.yrange <- round(max(mean.steps.daytype$steps),0)
 yrange <- range(seq(from = min.yrange, to = max.yrange, by = 50))
-par(mfrow = c(1, 2), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+par(mfrow = c(2, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
 plot(mean.wday$interval, mean.wday$steps, pch = 20, type = "l",
-                        xlim = range(0,2500), ylim = yrange, xlab = "", 
-                        ylab = "Average Number of Steps", main = "Weekday")
+                        xlim = range(0,2500), ylim = yrange, xlab = "Interval", 
+                        ylab = "Avg Number of Steps", main = "Weekday")
 plot(mean.wend$interval, mean.wend$steps, pch = 20, type = "l",
-                        xlim = range(0,2500), ylim = yrange, xlab = "",
-                        ylab = "", main = "Weekend")
+                        xlim = range(0,2500), ylim = yrange, xlab = "Interval",
+                        ylab = "Avg Number of Steps", main = "Weekend")
 ```
