@@ -34,55 +34,52 @@ activity <- read.csv("activity.csv", header = TRUE, sep = ',',
 
 ###   Step 2: Process data to address other parts of assignment
 ```{r iniital_processing, include = TRUE}
-activity$date <- ymd(activity$date)
+activity$date <- strptime(activity$date, "%Y-%m-%d")
 activity$day <- weekdays(activity$date)
 activity$daytype <- ifelse(activity$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
 activity <- select(activity, daytype, day, date, interval, steps)
-dates <- as.data.frame(unique(activity$date))
+dates <- as.data.frame(as.Date(unique(activity$date)))
 colnames(dates)[1] <- "date"
-daterange = c(seq(as.Date(min(dates$date)), as.Date(max(dates$date)), by = 6))
+daterange = c(seq(min(dates$date), max(dates$date), by = 6))
 ```
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
 ### Step 1: Calculate total steps each day  
 ```{r total_steps_per_day, include = TRUE}
-steps.a.day <- aggregate(steps ~ date, data = activity, 
-                         FUN = function(x) sum=sum(x))
-steps.a.day$steps1000 <- round(steps.a.day$steps/1000, digits = 2)
-steps.a.day1 <- select(steps.a.day, date, steps1000)
+activity.clean <- subset(activity, !is.na(steps))
+steps.a.day <- aggregate(activity.clean$steps, 
+                        list(date = as.Date(activity.clean$date)), sum)
+colnames(steps.a.day) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps by day
 ```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
-hist(steps.a.day1$steps1000,
-            breaks = round(length(dates$date)/3,0)+2
+yAxis = seq(from = 0, to = 24000, by = 3000)
+xAxis = seq(from = min(dates$date), max(dates$date), by = 6)
+with(steps.a.day, {
+      hist(steps [date >= as.Date("2012-10-01", "Y-%m-%d")
+                  & date <= as.Date("2012-11-30", "%Y-%m-%d")],
+            breaks = xAxis,
             main = "Total Steps Each Day",
             xlab = "Measurement Date",
-            ylab = "Total Steps(000s)",
-            xlim = c(0,length(dates$date)), ylim = c(0, 20))
-            xaxt = "n")
-axis(side = 1, at = steps.a.day1$date, labels = c(daterange))
-        
+            ylab = "Total Steps",
+            xaxt = "n", yaxt = "n")
+      
+      axis(2, at = yAxis, labels = yAxis)
+      axis(1, at = xAxis, labels = xAxis)
+})
 
-ggplot(steps.a.day1, aes(x = date)) +
-      geom_histogram(breaks = round(length(dates$date)/3,0)+2, 
-                     fill = "blue", na.rm = TRUE, pad = TRUE) +
+
+ggplot(steps.a.day, aes(x = date, y = steps)) +
+      geom_histogram(stat_bin2d(binwidth = 0.3, drop = TRUE), 
+                                    fill = "blue", na.rm = TRUE) +
       labs(title = "Total Steps Each Day") +
       labs(x = "Date", y = "Total Steps(000s)") +
-      scale_x_date(labels = strptime(as.character(steps.a.day1$date), "%Y-%m-%d")) +
-      scale_y_continuous(breaks = seq(0, 20, 4)) +
-      scale_x_continuous(breaks = c(seq(from = as.Date(min(dates$date)),
-                              to = as.Date(max(dates$date)), by = "3 months"") +
+      scale_x_date(dates$date, date_breaks = c(daterange), 
+                        date_labels = c(daterange)) +
+      scale_y_continuous(breaks = seq(0, 22000, 3000)) +
             
-            geom_rect(aes(xmin = as.Date("2012-10-01", "%Y-%m-%d"),
-                          xmax = as.Date("2012-11-30", "%Y-%m-%d"),
-                          ymin =0, ymax = 25)) +
-            
-            
- #          axis.Date(1, as.Date(15103, origin = "1970-01-01")) +
-            geom_rect(aes(xmin = as.Date("2012-10-01", "%Y-%m-%d"),
-                          xmax = as.Date("2012-11-30", "%Y-%m-%d"),
-                          ymin =0, ymax = 25))
+ #    axis.Date(1, as.Date(15103, origin = "1970-01-01")) +
 ```
 
 ## Item 3: Mean & Median steps per day [Days with no steps are excluded]
@@ -133,7 +130,7 @@ missing value with applicable imputed value.
 #### NOTE:  Results are rounded, no decimals, as partial steps are not counted.
 ```{r mean_steps_day_interval, include = TRUE}
 mean.day.interval <- aggregate(steps ~ day + interval, data = activity,
-                              FUN = function(x) mean=round(mean(x), digits = 0), na.rm = TRUE)
+                              FUN = function(x) mean=round(mean(x), digits = 0))
 mean.day.interval <- select(mean.day.interval, day, interval, steps)
 ```
 
@@ -155,7 +152,7 @@ activity.clean <- subset(activity, !is.na(steps))
 
 #### Step 2b: Replace missign values with imputed values (merge function)
 ```{r subset_replace_missing, include = TRUE}
-activity.impute <- merge(activity.isna, mean.day.interval, by = c("day", "interval"))
+activity.impute <- merge(activity.isna, mean.day.interval, by = c("day","interval"))
 ```
 
 #### Step 2c: Combine, rbind(), imputed observations with actual observations
