@@ -5,13 +5,8 @@ date: "5/25/2017"
 output: html_document
 ---
 
-## Set Global Option
-```{r setoptions, echo = FALSE}
-opts_chunk$set(echo = FALSE, results = asis, include = TRUE)
-```
-
 ## Load anticipated packages to be used throughout Course 5 Project 1
-```{r setup, include=TRUE}
+```{r setup, include=FALSE}
 ipak <- function(pkg){
       new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
       if (length(new.pkg)) 
@@ -157,7 +152,7 @@ colnames(impute.total.steps) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps per day
-```{r steps_per_dzy_hist, fig.keep = "all"", fig.show = "asis" }
+```{r steps_per_day_hist, fig.keep = "all"", fig.show = "asis" }
 theme_update(plot.title = element_text(hjust = 0.5))
 ggplot(impute.total.steps, aes(x = steps)) +
       geom_histogram(binwidth = 1000, fill = "blue") +
