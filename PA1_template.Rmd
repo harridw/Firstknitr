@@ -1,7 +1,7 @@
 ---
 title: "First_Knitr"
 author: "EHarris"
-date: "5/25/2017"
+date: "5/31/2017"
 output: html_document
 ---
 
@@ -39,7 +39,7 @@ daterange = c(seq(min(dates$date), max(dates$date), by = 6))
 ```
 
 ## Item 2. Histogram of the total number of steps taken each day.  Two steps:  
-### Step 1: Calculate total steps each day  
+### Step 1: Calculate total steps each day (remove missing, NA, values for steps) 
 ```{r total_steps_per_day, include = TRUE}
 activity.clean <- subset(activity, !is.na(steps))
 steps.a.day <- aggregate(activity.clean$steps, 
@@ -56,7 +56,7 @@ ggplot(steps.a.day, aes(x = steps)) +
       labs(x = "Steps a Day", y = "Frequency (# Days)")
 ```
 
-## Item 3a: Mean & Median steps per day [Days with no steps are excluded]
+## Item 3a: Mean & Median steps per day (excludes missing, NA, values)
 ```{r mean_median_steps_per_day, include = TRUE}
 meansteps <- mean(steps.a.day$steps, na.rm = TRUE)
 mediansteps <- median(steps.a.day$steps, na.rm = TRUE)
@@ -137,6 +137,8 @@ sets with imputed values to those observations with actula values.
 activity.isna <- subset(activity, is.na(steps))
 activity.isna <- select(activity.isna, daytype, day, date, interval)
 activity.clean <- subset(activity, !is.na(steps))
+activity.clean <- activity.clean[order(activity.clean[,3],
+                                         activity.clean[,4])]
 
 head(activity.isna)
 ```
@@ -144,6 +146,8 @@ head(activity.isna)
 #### Step 2b: Replace missign values with imputed values (merge function)
 ```{r subset_replace_missing, include = TRUE}
 activity.impute <- merge(activity.isna, mean.day.interval, by = c("day","interval"))
+activity.impute <- activity.impute[order(activity.impute[,3],
+                                         activity.impute[,4])]
 
 head(activity.impute)
 ```
@@ -152,6 +156,17 @@ head(activity.impute)
 ```{r combine_impute_actual, include = TRUE}
 activity.total <- rbind(activity.clean, activity.impute)
 activity.total <- activity.total[order(activity.total[,3], activity.total[,4]),]
+```
+
+#### Step 2d: Mean / Median steps after including imputed values
+```{r impute_mean_median_steps_day, include = TRUE}
+steps.impute.day <- aggregate(activity.total$steps, 
+                        list(date = as.Date(activity.total$date)), sum)
+colnames(steps.impute.day) <- c("date", "steps")
+meansteps2 <- mean(steps.impute.day$steps, na.rm = TRUE)
+mediansteps2 <- median(steps.impute.day$steps, na.rm = TRUE)
+mean.median.steps2 <- data.frame("Mean Steps" = meansteps, "Median Steps" = mediansteps)
+mean.median.steps2
 ```
 
 ## Item 7: Histogram of total steps each day after missing values are imputed
