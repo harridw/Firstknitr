@@ -48,7 +48,7 @@ colnames(steps.a.day) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps per day
-```{r steps_per_day_hist, fig.keep = "all", fig.show = "asis" }
+```{r steps_per_day_hist, fig.keep = "all", fig.show = "asis", fig.path = 'figure/'}
 theme_update(plot.title = element_text(hjust = 0.5))
 ggplot(steps.a.day, aes(x = steps)) +
       geom_histogram(binwidth = 1000, fill = "blue") +
@@ -65,7 +65,7 @@ mean.median.steps
 ```
 
 ## Item 4a: Time series (day of week) plot of the average number of steps taken
-```{r mean_steps_day_of_week, include = TRUE}
+```{r mean_steps_day_of_week, fig.keep = "all", fig.show = "asis", fig.path = 'figure/'}
 mean.steps.day <- aggregate(steps ~ day, data = activity, 
                                     FUN = function(x) mean=mean(x))
 mean.steps.day$day <- factor(mean.steps.day$day,
@@ -81,7 +81,7 @@ qplot(x = day, y = steps, data = mean.steps.day, group = 7,
 
 
 ## Item 4b: Time series (5-minute interval) plot of the average number of steps taken
-```{r mean_steps_5min_interval, include = TRUE}
+```{r mean_steps_5min_interval, fig.keep = "all", fig.show = "asis", fig.path = 'figure/'}
 mean.steps.interval <- aggregate(steps ~ interval, data = activity.clean, 
                                     FUN = function(x) mean=mean(x))
 
@@ -183,7 +183,7 @@ colnames(impute.total.steps) <- c("date", "steps")
 ```
 
 ### Step 2: Plot histogram reflecting total number of steps per day
-```{r impute_steps_day_hist, fig.keep = "all", fig.show = "asis" }
+```{r impute_steps_day_hist, fig.keep = "all", fig.show = "asis", fig.path = 'figure/'}
 theme_update(plot.title = element_text(hjust = 0.5))
 ggplot(impute.total.steps, aes(x = steps)) +
       geom_histogram(binwidth = 1000, fill = "blue") +
@@ -193,7 +193,7 @@ ggplot(impute.total.steps, aes(x = steps)) +
 
 ### Item 8: Panel plot of average number of steps per 5-minute interval  
 #### A comparison of weekdays and weekend
-```{r panel_plot, include = TRUE}
+```{r panel_plot, fig.keep = "all", fig.show = "asis", fig.path = 'figure/'}
 mean.steps.daytype <- aggregate(steps ~ daytype + interval, data = activity,
                                                 FUN = function(x) mean=mean(x))
 mean.wday <- subset(mean.steps.daytype, daytype == "Weekday")
