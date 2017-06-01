@@ -1,7 +1,7 @@
 ---
 title: "First_Knitr"
 author: "EHarris"
-date: "5/31/2017"
+date: "6/01/2017"
 output: html_document
 ---
 
