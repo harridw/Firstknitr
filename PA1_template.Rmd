@@ -2,7 +2,9 @@
 title: "First_Knitr"
 author: "EHarris"
 date: "6/01/2017"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ## Load anticipated packages to be used throughout Course 5 Project 1
